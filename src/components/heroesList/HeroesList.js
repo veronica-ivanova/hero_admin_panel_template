@@ -1,18 +1,20 @@
 import {useHttp} from '../../hooks/http.hook';
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import {useCallback, useEffect} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
-import { heroesFetching, heroesFetched, heroesFetchingError } from '../../actions';
+import {heroesFetching, heroesFetched, heroesFetchingError, heroDeleted} from '../../actions';
 import HeroesListItem from "../heroesListItem/HeroesListItem";
 import Spinner from '../spinner/Spinner';
 
-// Задача для этого компонента:
-// При клике на "крестик" идет удаление персонажа из общего состояния
-// Усложненная задача:
-// Удаление идет и с json файла при помощи метода DELETE
-
 const HeroesList = () => {
-    const {heroes, heroesLoadingStatus} = useSelector(state => state);
+    const filteredHeroes = useSelector(state => {
+        if (state.activeFilter === 'all') {
+            return state.heroes;
+        }
+        return state.heroes.filter(item => item.element === state.activeFilter);
+    });
+
+    const heroesLoadingStatus = useSelector(state => state.heroesLoadingStatus);
     const dispatch = useDispatch();
     const {request} = useHttp();
 
@@ -24,6 +26,13 @@ const HeroesList = () => {
 
         // eslint-disable-next-line
     }, []);
+
+    const onDelete = useCallback((id) => {
+        request(`http://localhost:3001/heroes/${id}`, "DELETE")
+            .then(() => dispatch(heroDeleted(id)))
+            .catch(err => console.error('Ошибка при удалении'))
+
+    }, [request])
 
     if (heroesLoadingStatus === "loading") {
         return <Spinner/>;
@@ -37,11 +46,11 @@ const HeroesList = () => {
         }
 
         return arr.map(({id, ...props}) => {
-            return <HeroesListItem key={id} {...props}/>
+            return <HeroesListItem key={id} onDelete={() => onDelete(id)} {...props}/>
         })
     }
 
-    const elements = renderHeroesList(heroes);
+    const elements = renderHeroesList(filteredHeroes);
     return (
         <ul>
             {elements}
