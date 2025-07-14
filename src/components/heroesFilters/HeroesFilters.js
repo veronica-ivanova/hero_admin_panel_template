@@ -1,9 +1,10 @@
 import {useHttp} from "../../hooks/http.hook";
 import {useEffect} from "react";
-import { fetchFilters, activeFilterChanged } from "../../actions";
+import { fetchFilters } from "../../actions";
 import {useDispatch, useSelector} from "react-redux";
 import classNames from "classnames";
 import Spinner from "../spinner/Spinner";
+import {filtersChanged} from "./filtersSlice";
 
 const HeroesFilters = () => {
     const {request} = useHttp();
@@ -35,7 +36,7 @@ const HeroesFilters = () => {
                 key={name}
                 id={name}
                 className={btnClass}
-                onClick={() => dispatch(activeFilterChanged(name))}>
+                onClick={() => dispatch(filtersChanged(name))}>
                 {label}
             </button>
         })
